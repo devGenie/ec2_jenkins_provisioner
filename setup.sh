@@ -2,7 +2,7 @@
 
 set -o errexit
 set -o nounset
-set -o xtracegit
+set -o xtrace
 
 function setup_vpc(){
     vpc_id=$(aws ec2 create-vpc --cidr-block 10.0.0.0/16 --query 'Vpc.VpcId' --output text)
@@ -10,11 +10,11 @@ function setup_vpc(){
     gateway_id=$(aws ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
     aws ec2 attach-internet-gateway --vpc-id $vpc_id --internet-gateway-id $gateway_id
 
-    echo -e "{\"vpc_id\":\""$vpc_id"\", \"public_subnet\":\""$public_subnet"\", \"gateway_id\":\""$gateway_id"\"}"
+    echo -e "{\"vpc_id\":\"$vpc_id\", \"public_subnet\":\"$public_subnet\", \"gateway_id\":\"$gateway_id\"}"
 }
 
 function create_route_tables(){
-    public_rt=$(aws ec2 create-route-table --vpc-id $vpc_d --query 'RouteTable.RouteTableId' --output text)
+    public_rt=$(aws ec2 create-route-table --vpc-id $vpc_id --query 'RouteTable.RouteTableId' --output text)
     aws ec2 create-route --route-table-id $public_rt --destination-cidr-block 0.0.0.0/0 --gateway-id $gateway_id
     aws ec2 associate-route-table --route-table-id $public_rt --subnet-id $public_subnet
 
@@ -41,19 +41,35 @@ function launch_instance(){
 
 }
 
-function provison_aws(){
+function provision_aws(){
     #setup vpc
+    vpc=$(setup_vpc)
+
+    vpc_id=$(echo $vpc | jq '.vpc_id')
+    public_subnet=$(echo $vpc | jq '.public_subnet')
+    gateway_id=$(echo $vpc | jq '.gateway_id')
+
     #create route tables
+    create_route_tables $vpc_id $public_subnet $gateway_id
     #create security groups
+    security_group=$(create_security_groups $vpc_id $public_subnet)
+    $sgid=$(echo $security_group | jq '.sgid')
     #launch instances
+    instance=$(launch_instance $sgid $public_subnet)
+    echo instance
 
 }
 
 function check_availability(){
     #run checks to find out the status of the provisioned instance
+    echo 'checking'
 }
 
-function setup_jenkins(){
-    # check if instance is running
-    # if is running, ssh into ec2 instance and install setup jenkins
+function main(){
+    # provision aws
+    provision_aws
+    # if instance is running, ssh into ec2 instance and install setup jenkins
+    check_availability
 }
+
+main
