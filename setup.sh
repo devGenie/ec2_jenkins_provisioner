@@ -1,3 +1,9 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o xtracegit
+
 function setup_vpc(){
     vpc_id=$(aws ec2 create-vpc --cidr-block 10.0.0.0/16 --query 'Vpc.VpcId' --output text)
     public_subnet=$(aws ec2 create-subnet --vpc-id $vpc_id --cidr-block 10.0.1.0/24 --query 'Subnet.SubnetId' --output text)
