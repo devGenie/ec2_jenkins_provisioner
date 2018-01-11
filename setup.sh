@@ -36,9 +36,18 @@ function launch_instance(){
 }
 
 function provison_aws(){
-    vpc_results=jq $(setup_vpc)
+    #setup vpc
+    #create route tables
+    #create security groups
+    #launch instances
+
 }
 
-function check_availability(public_ip){
+function check_availability(){
+    #run checks to find out the status of the provisioned instance
+}
 
+function setup_jenkins(){
+    # check if instance is running
+    # if is running, ssh into ec2 instance and install setup jenkins
 }
