@@ -45,15 +45,17 @@ function provision_aws(){
     #setup vpc
     vpc=$(setup_vpc)
 
-    vpc_id=$(echo $vpc | jq '.vpc_id')
-    public_subnet=$(echo $vpc | jq '.public_subnet')
-    gateway_id=$(echo $vpc | jq '.gateway_id')
+    vpc_id=$(echo $vpc | jq -r '.vpc_id')
+    public_subnet=$(echo $vpc | jq -r '.public_subnet')
+    gateway_id=$(echo $vpc | jq -r '.gateway_id')
 
     #create route tables
     create_route_tables $vpc_id $public_subnet $gateway_id
+
     #create security groups
     security_group=$(create_security_groups $vpc_id $public_subnet)
-    $sgid=$(echo $security_group | jq '.sgid')
+    sgid=$(echo $security_group | jq -r '.sgid')
+    
     #launch instances
     instance=$(launch_instance $sgid $public_subnet)
     echo instance
